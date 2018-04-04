@@ -155,7 +155,7 @@ fi
 
 # Load dependencies for enabling components
 source "$BASH_IT/lib/composure.bash"
-cite _about _param _example _group _author _version
+stdlib_cite _about _param _example _group _author _version
 source "$BASH_IT/lib/helpers.bash"
 
 if [[ $interactive ]] && ! [[ $silent ]] ;

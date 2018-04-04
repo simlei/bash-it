@@ -33,7 +33,7 @@ fi
 source "${BASH_IT}/lib/composure.bash"
 
 # support 'plumbing' metadata
-cite _about _param _example _group _author _version
+stdlib_cite _about _param _example _group _author _version
 
 # libraries, but skip appearance (themes) for now
 LIB="${BASH_IT}/lib/*.bash"

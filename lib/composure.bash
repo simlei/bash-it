@@ -8,12 +8,12 @@
 
 # 'plumbing' functions
 
-composure_keywords ()
+stdlib_composure_keywords ()
 {
     echo "about author example group param version"
 }
 
-letterpress ()
+stdlib_letterpress ()
 {
     typeset rightcol="$1" leftcol="${2:- }"
 
@@ -24,7 +24,7 @@ letterpress ()
     printf "%-20s%s\n" "$leftcol" "$rightcol"
 }
 
-transcribe ()
+stdlib_transcribe ()
 {
     typeset func=$1
     typeset file=$2
@@ -66,7 +66,7 @@ transcribe ()
                             git commit -m 'initial commit'
                         )
                         # if at first you don't succeed...
-                        transcribe "$func" "$file" "$operation"
+                        stdlib_transcribe "$func" "$file" "$operation"
                         valid=1
                         ;;
                     n|no|N|No|NO)
@@ -82,7 +82,7 @@ transcribe ()
     fi
 }
 
-typeset_functions ()
+stdlib_typeset_functions ()
 {
     # unfortunately, there does not seem to be a easy, portable way to list just the
     # names of the defined shell functions...
@@ -113,7 +113,7 @@ typeset_functions ()
 
 
 # bootstrap metadata keywords for porcelain functions
-for f in $(composure_keywords)
+for f in $(stdlib_composure_keywords)
 do
     eval "$f() { :; }"
 done
@@ -122,14 +122,14 @@ unset f
 
 # 'porcelain' functions
 
-cite ()
+stdlib_cite ()
 {
     about creates one or more meta keywords for use in your functions
     param one or more keywords
-    example '$ cite url username'
+    example '$ stdlib_cite url username'
     example '$ url http://somewhere.com'
     example '$ username alice'
-    group composure
+    group stdlib_composure
 
     # this is the storage half of the 'metadata' system:
     # we create dynamic metadata keywords with function wrappers around
@@ -146,7 +146,7 @@ cite ()
 
     if [ -z "$1" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference cite
+        stdlib_reference stdlib_cite
         return
     fi
 
@@ -156,15 +156,15 @@ cite ()
     done
 }
 
-draft ()
+stdlib_draft ()
 {
     about wraps command from history into a new function, default is last command
     param 1: name to give function
     param 2: optional history line number
     example '$ ls'
-    example '$ draft list'
-    example '$ draft newfunc 1120  # wraps command at history line 1120 in newfunc()'
-    group composure
+    example '$ stdlib_draft list'
+    example '$ stdlib_draft newfunc 1120  # wraps command at history line 1120 in newfunc()'
+    group stdlib_composure
 
     typeset func=$1
     typeset num=$2
@@ -172,7 +172,7 @@ draft ()
 
     if [ -z "$func" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference draft
+        stdlib_reference stdlib_draft
         return
     fi
 
@@ -185,7 +185,7 @@ draft ()
     if [ -z "$num" ]; then
         # parse last command from fc output
         # some versions of 'fix command, fc' need corrective lenses...
-        typeset myopic=$(fc -ln -1 | grep draft)
+        typeset myopic=$(fc -ln -1 | grep stdlib_draft)
         typeset lines=1
         if [ -n "$myopic" ]; then
             lines=2
@@ -196,46 +196,46 @@ draft ()
         cmd=$(eval "history | grep '^[[:blank:]]*$num' | head -1" | sed 's/^[[:blank:][:digit:]]*//')
     fi
     eval "$func() { $cmd; }"
-    typeset file=$(mktemp -t draft.XXXX)
+    typeset file=$(mktemp -t stdlib_draft.XXXX)
     typeset -f $func > $file
-    transcribe $func $file draft
+    stdlib_transcribe $func $file stdlib_draft
     rm $file 2>/dev/null
 }
 
-glossary ()
+stdlib_glossary ()
 {
     about displays help summary for all functions, or summary for a group of functions
     param 1: optional, group name
-    example '$ glossary'
-    example '$ glossary misc'
-    group composure
+    example '$ stdlib_glossary'
+    example '$ stdlib_glossary misc'
+    group stdlib_composure
 
     typeset targetgroup=${1:-}
 
-    for func in $(typeset_functions); do
+    for func in $(stdlib_typeset_functions); do
         if [ -n "$targetgroup" ]; then
-            typeset group="$(typeset -f $func | metafor group)"
+            typeset group="$(typeset -f $func | stdlib_metafor group)"
             if [ "$group" != "$targetgroup" ]; then
                 continue  # skip non-matching groups, if specified
             fi
         fi
-        typeset about="$(typeset -f $func | metafor about)"
-        letterpress "$about" $func
+        typeset about="$(typeset -f $func | stdlib_metafor about)"
+        stdlib_letterpress "$about" $func
     done
 }
 
-metafor ()
+stdlib_metafor ()
 {
     about prints function metadata associated with keyword
     param 1: meta keyword
-    example '$ typeset -f glossary | metafor example'
-    group composure
+    example '$ typeset -f stdlib_glossary | stdlib_metafor example'
+    group stdlib_composure
 
     typeset keyword=$1
 
     if [ -z "$keyword" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference metafor
+        stdlib_reference stdlib_metafor
         return
     fi
 
@@ -246,65 +246,65 @@ metafor ()
     sed -n "/$keyword / s/['\";]*$//;s/^[ 	]*$keyword ['\"]*\([^([].*\)*$/\1/p"
 }
 
-reference ()
+stdlib_reference ()
 {
     about displays apidoc help for a specific function
     param 1: function name
-    example '$ reference revise'
-    group composure
+    example '$ stdlib_reference stdlib_revise'
+    group stdlib_composure
 
     typeset func=$1
     if [ -z "$func" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference reference
+        stdlib_reference stdlib_reference
         return
     fi
 
     typeset line
 
-    typeset about="$(typeset -f $func | metafor about)"
-    letterpress "$about" $func
+    typeset about="$(typeset -f $func | stdlib_metafor about)"
+    stdlib_letterpress "$about" $func
 
-    typeset author="$(typeset -f $func | metafor author)"
+    typeset author="$(typeset -f $func | stdlib_metafor author)"
     if [ -n "$author" ]; then
-        letterpress "$author" 'author:'
+        stdlib_letterpress "$author" 'author:'
     fi
 
-    typeset version="$(typeset -f $func | metafor version)"
+    typeset version="$(typeset -f $func | stdlib_metafor version)"
     if [ -n "$version" ]; then
-        letterpress "$version" 'version:'
+        stdlib_letterpress "$version" 'version:'
     fi
 
-    if [ -n "$(typeset -f $func | metafor param)" ]; then
+    if [ -n "$(typeset -f $func | stdlib_metafor param)" ]; then
         printf "parameters:\n"
-        typeset -f $func | metafor param | while read line
+        typeset -f $func | stdlib_metafor param | while read line
         do
-            letterpress "$line"
+            stdlib_letterpress "$line"
         done
     fi
 
-    if [ -n "$(typeset -f $func | metafor example)" ]; then
+    if [ -n "$(typeset -f $func | stdlib_metafor example)" ]; then
         printf "examples:\n"
-        typeset -f $func | metafor example | while read line
+        typeset -f $func | stdlib_metafor example | while read line
         do
-            letterpress "$line"
+            stdlib_letterpress "$line"
         done
     fi
 }
 
-revise ()
+stdlib_revise ()
 {
     about loads function into editor for revision
     param 1: name of function
-    example '$ revise myfunction'
-    group composure
+    example '$ stdlib_revise myfunction'
+    group stdlib_composure
 
     typeset func=$1
-    typeset temp=$(mktemp -t revise.XXXX)
+    typeset temp=$(mktemp -t stdlib_revise.XXXX)
 
     if [ -z "$func" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference revise
+        stdlib_reference stdlib_revise
         return
     fi
 
@@ -325,35 +325,35 @@ revise ()
     $EDITOR $temp
     . $temp  # source edited file
 
-    transcribe $func $temp revise
+    stdlib_transcribe $func $temp stdlib_revise
     rm $temp
 }
 
-write ()
+stdlib_write ()
 {
-    about writes one or more composed function definitions to stdout
+    about stdlib_writes one or more composed function definitions to stdout
     param one or more function names
-    example '$ write finddown foo'
-    example '$ write finddown'
-    group composure
+    example '$ stdlib_write finddown foo'
+    example '$ stdlib_write finddown'
+    group stdlib_composure
 
     if [ -z "$1" ]; then
         printf '%s\n' 'missing parameter(s)'
-        reference write
+        stdlib_reference stdlib_write
         return
     fi
 
 # bootstrap metadata
 cat <<END
-for f in $(composure_keywords)
+for f in $(stdlib_composure_keywords)
 do
     eval "\$f() { :; }"
 done
 unset f
 END
 
-    # include cite() to enable custom keywords
-    typeset -f cite $*
+    # include stdlib_cite() to enable custom keywords
+    typeset -f stdlib_cite $*
 }
 
 : <<EOF

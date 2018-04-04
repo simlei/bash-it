@@ -96,7 +96,7 @@ bash-it ()
          version)
              func=_bash-it-version;;
          *)
-             reference bash-it
+             stdlib_reference bash-it
              return;;
     esac
 
@@ -109,7 +109,7 @@ bash-it ()
                 func=${func}es
             else
                 echo "oops! $component is not a valid option!"
-                reference bash-it
+                stdlib_reference bash-it
                 return
             fi
         fi
@@ -282,7 +282,7 @@ _bash-it-describe ()
         else
             enabled=' '
         fi
-        printf "%-20s%-10s%s\n" "$(basename $f | sed -e 's/\(.*\)\..*\.bash/\1/g')" "  [$enabled]" "$(cat $f | metafor about-$file_type)"
+        printf "%-20s%-10s%s\n" "$(basename $f | sed -e 's/\(.*\)\..*\.bash/\1/g')" "  [$enabled]" "$(cat $f | stdlib_metafor about-$file_type)"
     done
     printf '\n%s\n' "to enable $preposition $file_type, do:"
     printf '%s\n' "$ bash-it enable $file_type  <$file_type name> [$file_type name]... -or- $ bash-it enable $file_type all"
@@ -333,7 +333,7 @@ _disable-thing ()
     file_entity="$3"
 
     if [ -z "$file_entity" ]; then
-        reference "disable-$file_type"
+        stdlib_reference "disable-$file_type"
         return
     fi
 
@@ -409,7 +409,7 @@ _enable-completion ()
 
 _enable-thing ()
 {
-    cite _about _param _example
+    stdlib_cite _about _param _example
     _about 'enables a bash_it component'
     _param '1: subdirectory'
     _param '2: file_type'
@@ -423,7 +423,7 @@ _enable-thing ()
     load_priority="$4"
 
     if [ -z "$file_entity" ]; then
-        reference "enable-$file_type"
+        stdlib_reference "enable-$file_type"
         return
     fi
 
@@ -496,7 +496,7 @@ _help-aliases()
                 alias_path="available/$1.aliases.bash"
             ;;
         esac
-        cat "${BASH_IT}/aliases/$alias_path" | metafor alias | sed "s/$/'/"
+        cat "${BASH_IT}/aliases/$alias_path" | stdlib_metafor alias | sed "s/$/'/"
     else
         typeset f
 
@@ -515,8 +515,8 @@ _help-list-aliases ()
 {
     typeset file=$(basename $1 | sed -e 's/[0-9]*[-]*\(.*\)\.aliases\.bash/\1/g')
     printf '\n\n%s:\n' "${file}"
-    # metafor() strips trailing quotes, restore them with sed..
-    cat $1 | metafor alias | sed "s/$/'/"
+    # stdlib_metafor() strips trailing quotes, restore them with sed..
+    cat $1 | stdlib_metafor alias | sed "s/$/'/"
 }
 
 _help-plugins()
@@ -528,15 +528,15 @@ _help-plugins()
     printf '%s' 'please wait, building help...'
     typeset grouplist=$(mktemp -t grouplist.XXXXXX)
     typeset func
-    for func in $(typeset_functions)
+    for func in $(stdlib_typeset_functions)
     do
-        typeset group="$(typeset -f $func | metafor group)"
+        typeset group="$(typeset -f $func | stdlib_metafor group)"
         if [ -z "$group" ]; then
             group='misc'
         fi
-        typeset about="$(typeset -f $func | metafor about)"
-        letterpress "$about" $func >> $grouplist.$group
-        echo $grouplist.$group >> $grouplist
+        typeset about="$(typeset -f $func | stdlib_metafor about)"
+        stdlib_letterpress "$about" $func >> "$grouplist.$group"
+        echo "$grouplist.$group" >> $grouplist
     done
     # clear progress message
     printf '\r%s\n' '                              '
@@ -574,9 +574,9 @@ all_groups ()
 
     typeset func
     typeset file=$(mktemp -t composure.XXXX)
-    for func in $(typeset_functions)
+    for func in $(stdlib_typeset_functions)
     do
-        typeset -f $func | metafor group >> $file
+        typeset -f $func | stdlib_metafor group >> $file
     done
     cat $file | sort | uniq
     rm $file
